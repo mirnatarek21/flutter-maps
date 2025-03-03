@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
+import 'package:flutter_maps/constants/strings.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
@@ -88,11 +89,13 @@ class LoginScreen extends StatelessWidget {
     return flag;
   }
 
-  Widget _buildNextButton() {
+  Widget _buildNextButton(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
       child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushNamed(context, otpScreen);
+          },
           child: Text(
             'Next',
             style: TextStyle(color: Colors.white, fontSize: 16),
@@ -126,7 +129,7 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(
                     height: 70,
                   ),
-                  _buildNextButton(),
+                  _buildNextButton(context),
                 ],
               ),
             ),
