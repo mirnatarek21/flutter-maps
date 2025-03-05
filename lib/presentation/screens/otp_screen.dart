@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_maps/business_logic/cubit/phone_auth/phone_auth_cubit.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
+import 'package:flutter_maps/constants/strings.dart';
+import 'package:flutter_maps/presentation/widgets/progress_indicator.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class OtpScreen extends StatelessWidget {
-  OtpScreen({super.key});
-  final phoneNumber = '';
+  final phoneNumber;
+
+  OtpScreen({super.key, required this.phoneNumber});
+  late String otpCode;
 
   Widget _buildIntroText() {
     return Column(
@@ -61,7 +67,7 @@ class OtpScreen extends StatelessWidget {
         animationDuration: Duration(milliseconds: 300),
         enableActiveFill: true,
         onCompleted: (code) {
-          //otpCode = code;
+          otpCode = code;
           print("Completed");
         },
         onChanged: (value) {
@@ -71,11 +77,18 @@ class OtpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVerifyButton() {
+  void _login(BuildContext context) {
+    BlocProvider.of<PhoneAuthCubit>(context).submitOTP(otpCode);
+  }
+
+  Widget _buildVerifyButton(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
       child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            showProgressIndicator(context);
+            _login(context);
+          },
           child: Text(
             'Verify',
             style: TextStyle(color: Colors.white, fontSize: 16),
@@ -85,6 +98,34 @@ class OtpScreen extends StatelessWidget {
               backgroundColor: Colors.black,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6)))),
+    );
+  }
+
+  Widget _buildPhoneVerificationBloc() {
+    return BlocListener<PhoneAuthCubit, PhoneAuthState>(
+      listenWhen: (previous, current) {
+        return previous != current;
+      },
+      listener: (context, state) {
+        if (state is Loading) {
+          showProgressIndicator(context);
+        }
+        if (state is PhoneOTPVerified) {
+          Navigator.pop(context);
+          Navigator.pushReplacementNamed(context, mapScreen,
+              arguments: phoneNumber);
+        }
+        if (state is ErrorOccured) {
+          Navigator.pop(context);
+          String errorMessage = (state).errorMessage;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.black,
+            duration: Duration(seconds: 3),
+          ));
+        }
+      },
+      child: Container(),
     );
   }
 
@@ -104,7 +145,8 @@ class OtpScreen extends StatelessWidget {
               SizedBox(
                 height: 60,
               ),
-              _buildVerifyButton(),
+              _buildVerifyButton(context),
+              _buildPhoneVerificationBloc(),
             ],
           ),
         ),

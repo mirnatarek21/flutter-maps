@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_maps/business_logic/cubit/phone_auth/phone_auth_cubit.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
 import 'package:flutter_maps/constants/strings.dart';
+import 'package:flutter_maps/presentation/widgets/progress_indicator.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
@@ -94,7 +97,8 @@ class LoginScreen extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: ElevatedButton(
           onPressed: () {
-            Navigator.pushNamed(context, otpScreen);
+            showProgressIndicator(context);
+            _register(context);
           },
           child: Text(
             'Next',
@@ -105,6 +109,47 @@ class LoginScreen extends StatelessWidget {
               backgroundColor: Colors.black,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6)))),
+    );
+  }
+
+  Future<void> _register(BuildContext context) async {
+    //not valid
+    if (!_phoneFormKey.currentState!.validate()) {
+      Navigator.pop(context);
+      return;
+    } else {
+      Navigator.pop(context);
+      _phoneFormKey.currentState!.save();
+      BlocProvider.of<PhoneAuthCubit>(context).submitPhoneNumber(phoneNumber);
+    }
+    ;
+  }
+
+  Widget _buildPhoneNumebrSubmitedBloc() {
+    //listener cuz we won't build anything just navigation between screens
+    return BlocListener<PhoneAuthCubit, PhoneAuthState>(
+      listenWhen: (previous, current) {
+        return previous != current;
+      },
+      listener: (context, state) {
+        if (state is Loading) {
+          showProgressIndicator(context);
+        }
+        if (state is PhoneNumberSubmited) {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, otpScreen, arguments: phoneNumber);
+        }
+        if (state is ErrorOccured) {
+          Navigator.pop(context);
+          String errorMessage = (state).errorMessage;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.black,
+            duration: Duration(seconds: 3),
+          ));
+        }
+      },
+      child: Container(),
     );
   }
 
@@ -130,6 +175,7 @@ class LoginScreen extends StatelessWidget {
                     height: 70,
                   ),
                   _buildNextButton(context),
+                  _buildPhoneNumebrSubmitedBloc(),
                 ],
               ),
             ),
