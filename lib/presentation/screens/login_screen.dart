@@ -46,7 +46,7 @@ class LoginScreen extends StatelessWidget {
                 borderRadius: BorderRadius.all(Radius.circular(6)),
               ),
               child: Text(
-                generateCountryFlag() + ' +20',
+                generateCountryFlag() + '  +2',
                 style: TextStyle(fontSize: 18, letterSpacing: 2.0),
               ),
             )),

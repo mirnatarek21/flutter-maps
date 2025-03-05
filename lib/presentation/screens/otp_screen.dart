@@ -116,7 +116,6 @@ class OtpScreen extends StatelessWidget {
               arguments: phoneNumber);
         }
         if (state is ErrorOccured) {
-          Navigator.pop(context);
           String errorMessage = (state).errorMessage;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(errorMessage),
